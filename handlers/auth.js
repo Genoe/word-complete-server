@@ -1,0 +1,41 @@
+const jwt = require('jsonwebtoken');
+const db = require('../models'); // looks for index.js by default
+
+exports.signup = async function (req, res, next) {
+    try {
+        // create a user
+        const user = await db.User.create(req.body);
+        const { id, username, profileImageUrl } = user;
+
+        // create a token (signing a token)
+        const token = jwt.sign(
+            {
+                id,
+                username,
+                profileImageUrl,
+            },
+            process.env.SECRET_KEY,
+        );
+
+        return res.status(200).json({
+            id,
+            username,
+            profileImageUrl,
+            token,
+        });
+    } catch (err) {
+        /**
+         * see what kind of err. If it's a certain error, respond with username/email already taken.
+         * Otherwise, generic 400 error.
+         * 11000 is a mongo error meaning the validation requirements in the schema (unique, required, etc) didn't pass
+         */
+        if (err.code === 11000) {
+            err.message = 'Sorry, that username and/or email is taken';
+        }
+
+        return next({
+            status: 400,
+            message: err.message,
+        });
+    }
+};
