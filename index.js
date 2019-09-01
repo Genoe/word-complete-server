@@ -5,7 +5,6 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/auth');
 
-const PORT = 8081;
 const app = express();
 
 app.use(cors());
@@ -18,6 +17,6 @@ app.use('/api/auth', authRoutes);
 // goes to the errorHandler, which is identified as a function with 4 paramers (error, req, res, next)
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-    console.log(`Server has started on port ${PORT}`);
+app.listen(process.env.PORT, () => {
+    console.log(`Server has started on port ${process.env.PORT}`);
 });

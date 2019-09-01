@@ -4,7 +4,7 @@ mongoose.set('debug', true); // see the actual mongo queries in the terminal
 mongoose.Promise = Promise; // going to use es2017 async, which still use promises under the hood
 
 // TODO: Keep URL somewhere else. Production will be different
-mongoose.connect('mongodb://localhost/word-complete', {
+mongoose.connect(process.env.DB_URL, {
     keepAlive: true,
     useNewUrlParser: true,
 });
