@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const db = require('../models'); // looks for index.js by default
 
-exports.signup = async function (req, res, next) {
+exports.signup = async function signup(req, res, next) {
     try {
         // create a user
         const user = await db.User.create(req.body);

@@ -2,6 +2,7 @@
     "extends": "airbnb-base",
     "rules": {
         "indent": ["error", 4],
-        "max-len": [1, 100, 4, { "ignorecomments": true }]
+        "max-len": [1, 100, 4, { "ignoreComments": true }],
+        "no-console": "off"
     }  
 }
