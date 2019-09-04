@@ -1,8 +1,19 @@
 const jwt = require('jsonwebtoken');
+const { validationResult } = require('express-validator');
 const db = require('../models'); // looks for index.js by default
+
+const errorFormatter = ({ msg }) => `${msg}`;
 
 exports.signup = async function signup(req, res, next) {
     try {
+        const validationErrors = validationResult(req).formatWith(errorFormatter);
+        if (!validationErrors.isEmpty()) {
+            return next({
+                status: 422,
+                message: validationErrors.array(),
+            });
+        }
+
         // create a user
         const user = await db.User.create(req.body);
         const { id, username, profileImageUrl } = user;
