@@ -20,3 +20,5 @@ app.use(errorHandler);
 app.listen(process.env.PORT, () => {
     console.log(`Server has started on port ${process.env.PORT}`);
 });
+
+module.exports = app;
