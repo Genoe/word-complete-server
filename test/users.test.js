@@ -10,11 +10,11 @@ const { User } = require('../models');
 const app = require('../index');
 
 describe('api/auth', () => {
-    beforeEach(async () => {
-        await User.deleteMany({});
-    });
+    describe('POST api/auth/users/signup', () => {
+        beforeEach(async () => {
+            await User.deleteMany({});
+        });
 
-    describe('POST api/users/signup', () => {
         it('Should create a new user', async () => {
             const res = await request(app)
                 .post('/api/auth/signup')
@@ -95,6 +95,42 @@ describe('api/auth', () => {
                 .includes('Please Enter a Valid Email Address')
                 .and.includes('Username Must Be Between 5 and 20 Characters')
                 .and.includes('Password Must Be At Least 8 Characters Long');
+        });
+    });
+
+    describe('user already exists', () => {
+        before(async () => {
+            await User.deleteMany({});
+
+            // create the user that will already exist
+            await request(app)
+                .post('/api/auth/signup')
+                .send({
+                    username: 'alreadytaken',
+                    password: 'morepotatoes',
+                    email: 'potatoes@potatoes.com',
+                });
+        });
+
+        after(async () => {
+            await User.deleteMany({});
+        });
+
+        it('Should fail to create a user with the same username', async () => {
+            const res = await request(app)
+                .post('/api/auth/signup')
+                .send({
+                    username: 'alreadytaken',
+                    password: 'morepotatoes',
+                    email: 'potatoes1@potatoes.com',
+                });
+
+            // Only sending 422 for vaildation errors from express-validator
+            expect(res.status).to.equal(400);
+            expect(res.body).to.have.property('error');
+            expect(res.body.error).to.have.property('message');
+            expect(res.body.error.message).to.be.an('array').of.length(1).that
+                .includes('Sorry, that username and/or email is taken');
         });
     });
 });
