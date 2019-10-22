@@ -49,3 +49,46 @@ exports.signup = async function signup(req, res, next) {
         });
     }
 };
+
+exports.signin = async function signin(req, res, next) {
+    try {
+        let id;
+        let username;
+        let isMatch = false;
+
+        // find a user
+        const user = await db.User.findOne({
+            email: req.body.email,
+        });
+
+        if (user) {
+            id = user.id;
+            username = user.username;
+            isMatch = await user.comparePassword(req.body.password, next);
+        }
+
+        if (isMatch) {
+            const token = jwt.sign({
+                id,
+                username,
+            },
+            process.env.SECRET_KEY);
+
+            return res.status(200).json({
+                id,
+                username,
+                token,
+            });
+        }
+
+        return next({
+            status: 400,
+            message: 'Invalid Email/Password',
+        });
+    } catch (err) {
+        return next({
+            status: 400,
+            message: 'Error. Invalid Email/Password',
+        });
+    }
+};
