@@ -133,4 +133,67 @@ describe('api/auth', () => {
                 .includes('Sorry, that username and/or email is taken');
         });
     });
+
+    describe('POST api/auth/users/signin', () => {
+        before(async () => {
+            await User.deleteMany({});
+
+            // create the user that will already exist
+            await request(app)
+                .post('/api/auth/signup')
+                .send({
+                    username: 'signintest',
+                    password: '123potatoes',
+                    email: 'potatoes94@potatoes.com',
+                });
+        });
+
+        after(async () => {
+            await User.deleteMany({});
+        });
+
+        it('should give the user a token (log them in)', async () => {
+            const res = await request(app)
+                .post('/api/auth/signin')
+                .send({
+                    password: '123potatoes',
+                    email: 'potatoes94@potatoes.com',
+                });
+
+            expect(res.status).to.equal(200);
+            expect(res.body).to.have.property('username', 'signintest');
+            expect(res.body).to.have.property('id');
+            expect(res.body).to.have.property('token');
+        });
+
+        it('should say "Invalid Email/Password" (bad username)', async () => {
+            const res = await request(app)
+                .post('/api/auth/signin')
+                .send({
+                    password: '123potatoes',
+                    email: 'potatoes95@potatoes.com',
+                });
+
+            expect(res.status).to.equal(400);
+            expect(res.body).to.have.property('error');
+            expect(res.body.error).to.have.property('message');
+            expect(res.body.error.message).to.be.an('array').of.length(1).that
+                .includes('Invalid Email/Password');
+        });
+
+        it('should say "Invalid Email/Password" (bad password)', async () => {
+            const res = await request(app)
+                .post('/api/auth/signin')
+                .send({
+                    password: '123potatoes2',
+                    email: 'potatoes94@potatoes.com',
+                });
+
+            expect(res.status).to.equal(400);
+            expect(res.body).to.have.property('error');
+            expect(res.body.error).to.have.property('message');
+            expect(res.body.error.message).to.be.an('array').of.length(1).that
+                .includes('Invalid Email/Password');
+        });
+    });
 });
