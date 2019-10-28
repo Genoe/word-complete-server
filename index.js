@@ -4,6 +4,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const errorHandler = require('./handlers/error');
 const authRoutes = require('./routes/auth');
+const accountRoutes = require('./routes/account');
+const { loginRequired, ensureCorrectUser } = require('./middleware/auth');
 
 const app = express();
 
@@ -12,6 +14,12 @@ app.use(bodyParser.json());
 
 // the routes specified in authRoutes will all be under /api/auth
 app.use('/api/auth', authRoutes);
+app.use(
+    '/api/users/:id/account',
+    loginRequired,
+    ensureCorrectUser,
+    accountRoutes,
+);
 
 // If we pass a parameter to next, express interprets that as us saying there is an error and
 // goes to the errorHandler, which is identified as a function with 4 paramers (error, req, res, next)

@@ -1,9 +1,11 @@
+require('dotenv').config();
+
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
-const db = require('../models'); // looks for index.js by default
+const db = require('../models');
 const errorFormatter = require('./errorFormat');
 
-exports.signup = async function signup(req, res, next) {
+exports.updateUsername = async function updateUsername(req, res, next) {
     try {
         const validationErrors = validationResult(req).formatWith(errorFormatter);
         if (!validationErrors.isEmpty()) {
@@ -13,11 +15,19 @@ exports.signup = async function signup(req, res, next) {
             });
         }
 
-        // create a user
-        const user = await db.User.create(req.body);
+        const user = await db.User.findByIdAndUpdate(
+            req.params.id,
+            {
+                username: req.body.username,
+            },
+            {
+                new: true,
+            },
+        );
+
         const { id, username, email } = user;
 
-        // create a token (signing a token)
+        // create a token (signing a token) need to send a new token with the new username
         const token = jwt.sign(
             {
                 id,
@@ -45,49 +55,6 @@ exports.signup = async function signup(req, res, next) {
         return next({
             status: 400,
             message: err.message,
-        });
-    }
-};
-
-exports.signin = async function signin(req, res, next) {
-    try {
-        let id;
-        let username;
-        let isMatch = false;
-
-        // find a user
-        const user = await db.User.findOne({
-            email: req.body.email,
-        });
-
-        if (user) {
-            id = user.id;
-            username = user.username;
-            isMatch = await user.comparePassword(req.body.password, next);
-        }
-
-        if (isMatch) {
-            const token = jwt.sign({
-                id,
-                username,
-            },
-            process.env.SECRET_KEY);
-
-            return res.status(200).json({
-                id,
-                username,
-                token,
-            });
-        }
-
-        return next({
-            status: 400,
-            message: 'Invalid Email/Password',
-        });
-    } catch (err) {
-        return next({
-            status: 400,
-            message: 'Error. Invalid Email/Password',
         });
     }
 };
