@@ -49,7 +49,7 @@ exports.updateUsername = async function updateUsername(req, res, next) {
          * 11000 is a mongo error meaning the validation requirements in the schema (unique, required, etc) didn't pass
          */
         if (err.code === 11000) {
-            err.message = 'Sorry, that username and/or email is taken';
+            err.message = 'Sorry, that username is taken';
         }
 
         return next({
