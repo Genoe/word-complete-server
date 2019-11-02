@@ -15,7 +15,7 @@ exports.signup = async function signup(req, res, next) {
 
         // create a user
         const user = await db.User.create(req.body);
-        const { id, username, email } = user;
+        const { id, username } = user;
 
         // create a token (signing a token)
         const token = jwt.sign(
@@ -29,7 +29,6 @@ exports.signup = async function signup(req, res, next) {
         return res.status(200).json({
             id,
             username,
-            email,
             token,
         });
     } catch (err) {

@@ -28,7 +28,6 @@ describe('api/auth', () => {
             expect(res.body).to.have.property('username', 'potatoes');
             expect(res.body).to.have.property('id');
             expect(res.body).to.have.property('token');
-            expect(res.body).to.have.property('email', 'potatoes@potatoes.com');
         });
 
         it('Should prompt for a longer password', async () => {
@@ -246,7 +245,6 @@ describe('api/users', () => {
             expect(res.status).to.equal(200);
             expect(res.body).to.have.property('id');
             expect(res.body).to.have.property('username', 'new username');
-            expect(res.body).to.have.property('email');
             expect(res.body).to.have.property('token');
         });
 

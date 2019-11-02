@@ -25,7 +25,7 @@ exports.updateUsername = async function updateUsername(req, res, next) {
             },
         );
 
-        const { id, username, email } = user;
+        const { id, username } = user;
 
         // create a token (signing a token) need to send a new token with the new username
         const token = jwt.sign(
@@ -39,7 +39,6 @@ exports.updateUsername = async function updateUsername(req, res, next) {
         return res.status(200).json({
             id,
             username,
-            email,
             token,
         });
     } catch (err) {
