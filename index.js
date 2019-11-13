@@ -72,6 +72,7 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         if (users[socket.id] && users[socket.id].oppenentId) {
             users[users[socket.id].oppenentId].pending = true;
+            users[users[socket.id].oppenentId].oppenentId = null;
             socket.broadcast.to(users[socket.id].oppenentId).emit('opponent disconnected');
         }
 
