@@ -1,14 +1,14 @@
 require('dotenv').config();
-const express = require('express');
+const app = require('express')();
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const io = require('socket.io')();
+const server = require('http').Server(app);
+const io = require('socket.io')(server);
 const errorHandler = require('./handlers/error');
 const authRoutes = require('./routes/auth');
 const accountRoutes = require('./routes/account');
 const { loginRequired, ensureCorrectUser } = require('./middleware/auth');
 
-const app = express();
 const users = {};
 
 app.use(cors());
@@ -27,7 +27,7 @@ app.use(
 // goes to the errorHandler, which is identified as a function with 4 paramers (error, req, res, next)
 app.use(errorHandler);
 
-app.listen(process.env.PORT, () => {
+server.listen(process.env.PORT, () => {
     console.log(`Server has started on port ${process.env.PORT}`);
 });
 
@@ -82,8 +82,5 @@ io.on('connection', (socket) => {
         console.log(`Connected Users: ${JSON.stringify(users)}`);
     });
 });
-
-io.listen(process.env.IO_PORT);
-console.log('socket.io listening on port ', process.env.IO_PORT);
 
 module.exports = app;
