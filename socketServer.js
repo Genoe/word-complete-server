@@ -1,4 +1,21 @@
+const fs = require('fs');
+
 const users = {};
+
+const words = new Set();
+
+// Words come from https://github.com/ciamkr/English-words-list/blob/master/OfficialCrosswords
+fs.readFile('./OfficialCrosswords.txt', (err, data) => {
+    console.log('generating words list...');
+    // eslint-disable-next-line no-throw-literal
+    if (err) throw err;
+
+    const splitted = data.toString().split('\r\n');
+
+    splitted.forEach((word) => words.add(word));
+
+    console.log('Finished generating words list!');
+});
 
 /**
  * Set up all events for the Socket IO server
@@ -46,7 +63,12 @@ function ioServer(io) {
 
         socket.on('chat message', (msg) => {
             console.log(`message: ${msg}`);
-            socket.broadcast.to(users[socket.id].oppenentId).emit('chat message', msg);
+
+            if (words.has(msg)) {
+                socket.broadcast.to(users[socket.id].oppenentId).emit('chat message', msg);
+            } else {
+                socket.emit('chat message', `${msg} is not a word!`);
+            }
         });
 
         socket.on('disconnect', () => {
