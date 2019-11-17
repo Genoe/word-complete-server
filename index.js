@@ -1,9 +1,12 @@
 require('dotenv').config();
-const app = require('express')();
+const express = require('express');
+
+const app = express();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
+const path = require('path');
 const errorHandler = require('./handlers/error');
 const authRoutes = require('./routes/auth');
 const accountRoutes = require('./routes/account');
@@ -22,6 +25,11 @@ app.use(
     ensureCorrectUser,
     accountRoutes,
 );
+
+// app.use(express.static(path.join(__dirname, 'www')));
+// app.get('/*', (req, res) => {
+//     res.sendFile(path.join(__dirname, 'www', 'index.html'));
+// });
 
 // If we pass a parameter to next, express interprets that as us saying there is an error and
 // goes to the errorHandler, which is identified as a function with 4 paramers (error, req, res, next)
