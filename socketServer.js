@@ -37,17 +37,23 @@ function ioServer(io) {
                 username,
                 pending: true, // is this user waiting to be matched up? TODO: Just rely on opponentId being false/falsy?
                 oppenentId: null, // When users disconnect, delete that user and set their opponent's pending to true and opponentId to null
+                isTurn: null,
             };
             if (matchedUserId) {
                 socket.emit(
                     'pending',
                     `You have been matched with ${users[matchedUserId].username}`,
                 );
+
+                // one player goes first. The other, second.
+                users[socket.id].isTurn = Math.random() >= 0.5;
+                users[matchedUserId].isTurn = !users[socket.id].isTurn;
+
                 socket.emit(
                     'match found',
                     {
                         oppUsername: users[matchedUserId].username,
-                        goFirst: false,
+                        isTurn: users[socket.id].isTurn,
                     },
                 );
                 socket.broadcast.to(matchedUserId).emit(
@@ -58,13 +64,14 @@ function ioServer(io) {
                     'match found',
                     {
                         oppUsername: username,
-                        goFirst: true,
+                        isTurn: users[matchedUserId].isTurn,
                     },
                 );
                 users[socket.id].oppenentId = matchedUserId;
                 users[socket.id].pending = false;
                 users[matchedUserId].oppenentId = socket.id;
                 users[matchedUserId].pending = false;
+                console.log('USERS', JSON.stringify(users));
             } else {
                 socket.emit(
                     'pending',
@@ -74,12 +81,37 @@ function ioServer(io) {
         });
 
         socket.on('chat message', (msg) => {
+            const { oppenentId, isTurn } = users[socket.id];
+            const opponentUsername = users[oppenentId].username;
+            console.log('USERS_CHAT_MESSAGE', JSON.stringify(users));
             console.log(`message: ${msg}`);
 
-            if (words.has(msg)) {
-                socket.broadcast.to(users[socket.id].oppenentId).emit('chat message', msg);
+            // Do nothing if it is not their turn
+            if (!isTurn) {
+                console.log('Player submitted when it was not their turn!');
+            } else if (words.has(msg)) {
+                socket.broadcast.to(oppenentId).emit('chat message', msg);
             } else {
-                socket.emit('chat message', `${msg} is not a word!`);
+                // user can lose a turn if it's not a word or doesn't match the ending letter of the previous word
+                socket.emit(
+                    'bad word',
+                    {
+                        msg: `${msg} is not a word! Lose a turn!`,
+                        isTurn: false,
+                    },
+                );
+                socket.broadcast.to(oppenentId).emit(
+                    'bad word',
+                    {
+                        msg: `${opponentUsername} said ${msg} which is not a word! Your turn!`,
+                        isTurn: true,
+                    },
+                );
+            }
+
+            if (isTurn) {
+                users[socket.id].isTurn = !isTurn;
+                users[oppenentId].isTurn = isTurn;
             }
         });
 
