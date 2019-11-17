@@ -43,12 +43,24 @@ function ioServer(io) {
                     'pending',
                     `You have been matched with ${users[matchedUserId].username}`,
                 );
-                socket.emit('match found', users[matchedUserId].username);
+                socket.emit(
+                    'match found',
+                    {
+                        oppUsername: users[matchedUserId].username,
+                        goFirst: false,
+                    },
+                );
                 socket.broadcast.to(matchedUserId).emit(
                     'pending',
                     `You have been matched with ${username}`,
                 );
-                socket.broadcast.to(matchedUserId).emit('match found', username);
+                socket.broadcast.to(matchedUserId).emit(
+                    'match found',
+                    {
+                        oppUsername: username,
+                        goFirst: true,
+                    },
+                );
                 users[socket.id].oppenentId = matchedUserId;
                 users[socket.id].pending = false;
                 users[matchedUserId].oppenentId = socket.id;
