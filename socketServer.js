@@ -83,27 +83,29 @@ function ioServer(io) {
         socket.on('chat message', (msg) => {
             const { oppenentId, isTurn } = users[socket.id];
             const opponentUsername = users[oppenentId].username;
+            const lwrcsMsg = msg.toLowerCase();
+
             console.log('USERS_CHAT_MESSAGE', JSON.stringify(users));
-            console.log(`message: ${msg}`);
+            console.log(`message: ${lwrcsMsg}`);
 
             // Do nothing if it is not their turn
             if (!isTurn) {
                 console.log('Player submitted when it was not their turn!');
-            } else if (words.has(msg)) {
-                socket.broadcast.to(oppenentId).emit('chat message', msg);
+            } else if (words.has(lwrcsMsg)) {
+                socket.broadcast.to(oppenentId).emit('chat message', lwrcsMsg);
             } else {
                 // user can lose a turn if it's not a word or doesn't match the ending letter of the previous word
                 socket.emit(
                     'bad word',
                     {
-                        msg: `${msg} is not a word! Lose a turn!`,
+                        msg: `${lwrcsMsg} is not a word! Lose a turn!`,
                         isTurn: false,
                     },
                 );
                 socket.broadcast.to(oppenentId).emit(
                     'bad word',
                     {
-                        msg: `${opponentUsername} said ${msg} which is not a word! Your turn!`,
+                        msg: `${opponentUsername} said ${lwrcsMsg} which is not a word! Your turn!`,
                         isTurn: true,
                     },
                 );
