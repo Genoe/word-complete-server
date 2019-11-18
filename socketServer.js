@@ -63,8 +63,15 @@ function isBadWord(msg, id, oppId) {
     } else if (!isCharValid(msg, oppId)) {
         const { lastWord } = users[oppId];
         const oppLastLetter = users[oppId].lastWord.slice(lastWord.length - 1);
-        const oppMsg = `${username} said ${msg} which does not begin with ${oppLastLetter}! Your turn!
-        Choose a word that starts with: ${oppLastLetter}`;
+        let oppMsg = `${username} said ${msg} which does not begin with ${oppLastLetter}! Your turn!`;
+
+        // if player 1 says a word and player 2 says a invalid word, then player 1 can still choose
+        // any word they want. After player 1 submits a word, player2's lastWord will be null yet.
+        // This means isCharValid will return true for any word player1 submits.
+        if (users[id].lastWord) {
+            oppMsg += ` Choose a word that starts with: ${oppLastLetter}`;
+            users[id].lastWord = users[oppId].lastWord; // Keep going with the same word until someone says something valid
+        }
 
         result.isValid = false;
 
