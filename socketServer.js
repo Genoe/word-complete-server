@@ -63,6 +63,8 @@ function isBadWord(msg, id, oppId) {
     } else if (!isCharValid(msg, oppId)) {
         const { lastWord } = users[oppId];
         const oppLastLetter = users[oppId].lastWord.slice(lastWord.length - 1);
+        const oppMsg = `${username} said ${msg} which does not begin with ${oppLastLetter}! Your turn!
+        Choose a word that starts with: ${oppLastLetter}`;
 
         result.isValid = false;
 
@@ -71,7 +73,7 @@ function isBadWord(msg, id, oppId) {
         result[id].isTurn = false;
 
         result[oppId] = {};
-        result[oppId].msg = `${username} said ${msg} which does not begin with ${oppLastLetter}! Your turn!`;
+        result[oppId].msg = oppMsg;
         result[oppId].isTurn = true;
     }
 
