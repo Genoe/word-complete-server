@@ -1,7 +1,7 @@
 const fs = require('fs');
 
+const MAX_LIVES = 3;
 const users = {};
-
 const words = new Set();
 
 // Words come from https://github.com/ciamkr/English-words-list/blob/master/OfficialCrosswords
@@ -52,6 +52,7 @@ function isBadWord(msg, id, oppId) {
 
     if (!words.has(msg)) {
         result.isValid = false;
+        users[id].lastWord = users[oppId].lastWord; // Keep going with the same word until someone says something valid
 
         result[id] = {};
         result[id].msg = `${msg} is not a word! Lose a turn!`;
@@ -121,6 +122,7 @@ function ioServer(io) {
                 isTurn: null,
                 lastWord: null,
                 words: new Set(),
+                lives: MAX_LIVES,
             };
             if (matchedUserId) {
                 socket.emit(
@@ -164,7 +166,7 @@ function ioServer(io) {
         });
 
         socket.on('chat message', (rawMsg) => {
-            const { oppenentId, isTurn } = users[socket.id];
+            const { oppenentId: oppId, isTurn } = users[socket.id];
             const msg = rawMsg.toLowerCase();
 
             console.log('USERS_CHAT_MESSAGE', JSON.stringify(users));
@@ -176,33 +178,38 @@ function ioServer(io) {
                 console.log('Player submitted when it was not their turn!');
             } else {
                 // user can lose a turn if it's not a word or doesn't match the ending letter of the previous word
-                const result = isBadWord(msg, socket.id, oppenentId);
+                const result = isBadWord(msg, socket.id, oppId);
 
                 if (result.isValid) {
-                    socket.broadcast.to(oppenentId).emit('chat message', msg);
+                    socket.broadcast.to(oppId).emit('chat message', msg);
                     users[socket.id].lastWord = msg;
                     users[socket.id].words.add(msg);
                 } else if (!result.isValid) {
-                    socket.emit(
-                        'bad word',
-                        {
-                            msg: result[socket.id].msg,
-                            isTurn: result[socket.id].isTurn,
-                        },
-                    );
-                    socket.broadcast.to(oppenentId).emit(
-                        'bad word',
-                        {
-                            msg: result[oppenentId].msg,
-                            isTurn: result[oppenentId].isTurn,
-                        },
-                    );
+                    socket.emit('bad word', {
+                        msg: result[socket.id].msg,
+                        isTurn: result[socket.id].isTurn,
+                    });
+                    socket.broadcast.to(oppId).emit('bad word', {
+                        msg: result[oppId].msg,
+                        isTurn: result[oppId].isTurn,
+                    });
+
+                    users[socket.id].lives -= 1;
+
+                    if (users[socket.id].lives === 0) {
+                        socket.emit('game over', {
+                            msg: `GAME OVER! ${users[oppId].username} HAS WON!`,
+                        });
+                        socket.broadcast.to(oppId).emit('game over', {
+                            msg: `CONGRATULATIONS YOU HAVE BESTED ${users[socket.id].username} IN A GAME OF WORD-COMPLETE!`,
+                        });
+                    }
                 }
             }
 
             if (isTurn) {
                 users[socket.id].isTurn = !isTurn;
-                users[oppenentId].isTurn = isTurn;
+                users[oppId].isTurn = isTurn;
             }
         });
 
