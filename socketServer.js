@@ -82,6 +82,17 @@ function isBadWord(msg, id, oppId) {
         result[oppId] = {};
         result[oppId].msg = oppMsg;
         result[oppId].isTurn = true;
+    } else if (users[id].words.has(msg) || users[oppId].words.has(msg)) {
+        result.isValid = false;
+
+        users[id].lastWord = users[oppId].lastWord; // Keep going with the same word until someone says something valid
+        result[id] = {};
+        result[id].msg = `${msg} has already been used! Lose a turn!`;
+        result[id].isTurn = false;
+
+        result[oppId] = {};
+        result[oppId].msg = `${username} said ${msg} which has already been used! Your turn!`;
+        result[oppId].isTurn = true;
     }
 
     return result;
@@ -109,6 +120,7 @@ function ioServer(io) {
                 oppenentId: null, // When users disconnect, delete that user and set their opponent's pending to true and opponentId to null
                 isTurn: null,
                 lastWord: null,
+                words: new Set(),
             };
             if (matchedUserId) {
                 socket.emit(
@@ -169,6 +181,7 @@ function ioServer(io) {
                 if (result.isValid) {
                     socket.broadcast.to(oppenentId).emit('chat message', msg);
                     users[socket.id].lastWord = msg;
+                    users[socket.id].words.add(msg);
                 } else if (!result.isValid) {
                     socket.emit(
                         'bad word',
