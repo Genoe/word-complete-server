@@ -26,10 +26,10 @@ app.use(
     accountRoutes,
 );
 
-// app.use(express.static(path.join(__dirname, 'www')));
-// app.get('/*', (req, res) => {
-//     res.sendFile(path.join(__dirname, 'www', 'index.html'));
-// });
+app.use(express.static(path.join(__dirname, 'www')));
+app.get('/*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'www', 'index.html'));
+});
 
 // If we pass a parameter to next, express interprets that as us saying there is an error and
 // goes to the errorHandler, which is identified as a function with 4 paramers (error, req, res, next)
