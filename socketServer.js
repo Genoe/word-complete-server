@@ -200,7 +200,8 @@ function ioServer(io) {
                             msg: `GAME OVER! ${users[oppId].username} HAS WON!`,
                         });
                         socket.broadcast.to(oppId).emit('game over', {
-                            msg: `CONGRATULATIONS YOU HAVE BESTED ${users[socket.id].username} IN A GAME OF WORD-COMPLETE!`,
+                            msg: `CONGRATULATIONS YOU HAVE BESTED 
+                            ${users[socket.id].username} IN A GAME OF WORD-COMPLETE!`,
                         });
                     }
                 }
