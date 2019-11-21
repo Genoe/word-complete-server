@@ -43,7 +43,6 @@ function isCharValid(msg, oppId) {
  * @param {String} oppId // SocketIO id of the opponent
  */
 function isBadWord(msg, id, oppId) {
-    const oppUsername = users[oppId].username;
     const { username } = users[id];
 
     const result = {
@@ -59,7 +58,7 @@ function isBadWord(msg, id, oppId) {
         result[id].isTurn = false;
 
         result[oppId] = {};
-        result[oppId].msg = `${oppUsername} said ${msg} which is not a word! Your turn!`;
+        result[oppId].msg = `${username} said ${msg} which is not a word! Your turn!`;
         result[oppId].isTurn = true;
     } else if (!isCharValid(msg, oppId)) {
         const { lastWord } = users[oppId];
