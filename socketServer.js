@@ -146,16 +146,21 @@ function ioServer(io) {
                 words: new Set(),
                 lives: MAX_LIVES,
             };
-            if (matchedUserId) {
-                socket.emit(
-                    'pending',
-                    `You have been matched with ${users[matchedUserId].username}`,
-                );
 
+            if (matchedUserId) {
+                let matchMsg;
                 // one player goes first. The other, second.
                 users[socket.id].isTurn = Math.random() >= 0.5;
                 users[matchedUserId].isTurn = !users[socket.id].isTurn;
 
+                // Emit 'pending' and then 'match found' to each player
+                matchMsg = `You have been matched with ${users[matchedUserId].username}`;
+                if (users[socket.id].isTurn) {
+                    matchMsg += ' Please send the first word!';
+                } else {
+                    matchMsg += ' Please wait for your opponent to send the first word!';
+                }
+                socket.emit('pending', matchMsg);
                 socket.emit(
                     'match found',
                     {
@@ -163,10 +168,14 @@ function ioServer(io) {
                         isTurn: users[socket.id].isTurn,
                     },
                 );
-                socket.broadcast.to(matchedUserId).emit(
-                    'pending',
-                    `You have been matched with ${username}`,
-                );
+
+                matchMsg = `You have been matched with ${username}`;
+                if (users[matchedUserId].isTurn) {
+                    matchMsg += ' Please send the first word!';
+                } else {
+                    matchMsg += ' Please wait for your opponent to send the first word!';
+                }
+                socket.broadcast.to(matchedUserId).emit('pending', matchMsg);
                 socket.broadcast.to(matchedUserId).emit(
                     'match found',
                     {
@@ -174,6 +183,7 @@ function ioServer(io) {
                         isTurn: users[matchedUserId].isTurn,
                     },
                 );
+
                 users[socket.id].oppenentId = matchedUserId;
                 users[socket.id].pending = false;
                 users[matchedUserId].oppenentId = socket.id;
@@ -182,7 +192,7 @@ function ioServer(io) {
             } else {
                 socket.emit(
                     'pending',
-                    `Hello ${username}. Plese wait for our matchmaking sauce to finish...`,
+                    `Hello ${username}! Plese wait for an opponent to be found...`,
                 );
             }
         });
@@ -223,7 +233,7 @@ function ioServer(io) {
                             msg: `GAME OVER! ${users[oppId].username} HAS WON!`,
                         });
                         socket.broadcast.to(oppId).emit('game over', {
-                            msg: `CONGRATULATIONS YOU HAVE BESTED 
+                            msg: `CONGRATULATIONS YOU HAVE DEFEATED 
                             ${users[socket.id].username} IN A GAME OF WORD-COMPLETE!`,
                         });
                     }
