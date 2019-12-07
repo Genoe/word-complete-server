@@ -166,7 +166,7 @@ function ioServer(io) {
 
         socket.on('chat message', (rawMsg) => {
             const { oppenentId: oppId, isTurn } = users[socket.id];
-            const msg = rawMsg.toLowerCase();
+            const msg = rawMsg.toLowerCase().trim();
 
             console.log('USERS_CHAT_MESSAGE', JSON.stringify(users));
             console.log(`message: ${msg}`);
