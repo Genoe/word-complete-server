@@ -1,23 +1,8 @@
 require('dotenv').config();
-const jwt = require('jsonwebtoken');
-const fs = require('fs');
+const { loginRequired } = require('../middleware/io_auth');
+const gameLogic = require('./gameLogic');
 
-const MAX_LIVES = 3;
-const users = {};
 const words = new Set();
-
-// Words come from https://github.com/ciamkr/English-words-list/blob/master/OfficialCrosswords
-fs.readFile('./OfficialCrosswords.txt', (err, data) => {
-    console.log('generating words list...');
-    // eslint-disable-next-line no-throw-literal
-    if (err) throw err;
-
-    const splitted = data.toString().split('\r\n');
-
-    splitted.forEach((word) => words.add(word));
-
-    console.log('Finished generating words list!');
-});
 
 /**
  * Check if the word starts with the opponents last word's ending letter
@@ -106,25 +91,7 @@ function isBadWord(msg, id, oppId) {
  */
 function ioServer(io) {
     // supply the jwt to connect to socket.io
-    io.use((socket, next) => {
-        try {
-            const token = socket.handshake.headers.authorization.split(' ')[1];
-
-            jwt.verify(token, process.env.SECRET_KEY, (err, decoded) => {
-                if (decoded) {
-                    console.log('socket io authenticated!');
-                    return next();
-                }
-                console.log('socket io NOT authenticated!', err);
-                return next(new Error('Please log in first'));
-            });
-        } catch (err) {
-            console.log('socket io NOT authenticated! (token missing/error)', err);
-            return next(new Error('Please log in first'));
-        }
-
-        return next(new Error('Chat Auth Error!'));
-    });
+    io.use(loginRequired);
 
     /**
      * @param {SocketIO.Socket} socket
@@ -135,60 +102,26 @@ function ioServer(io) {
         socket.on('username', (username) => {
             console.log(`User: ${username} has connected`);
 
-            const matchedUserId = Object.keys(users).find((key) => users[key].pending);
+            const matchData = gameLogic.setUpMatch(socket.id, username);
 
-            users[socket.id] = {
-                username,
-                pending: true, // is this user waiting to be matched up? TODO: Just rely on opponentId being false/falsy?
-                oppenentId: null, // When users disconnect, delete that user and set their opponent's pending to true and opponentId to null
-                isTurn: null,
-                lastWord: null,
-                words: new Set(),
-                lives: MAX_LIVES,
-            };
-
-            if (matchedUserId) {
-                let matchMsg;
-                // one player goes first. The other, second.
-                users[socket.id].isTurn = Math.random() >= 0.5;
-                users[matchedUserId].isTurn = !users[socket.id].isTurn;
-
-                // Emit 'pending' and then 'match found' to each player
-                matchMsg = `You have been matched with ${users[matchedUserId].username}`;
-                if (users[socket.id].isTurn) {
-                    matchMsg += ' Please send the first word!';
-                } else {
-                    matchMsg += ' Please wait for your opponent to send the first word!';
-                }
-                socket.emit('pending', matchMsg);
+            if (matchData) {
+                socket.emit('pending', matchData.userMsg);
                 socket.emit(
                     'match found',
                     {
-                        oppUsername: users[matchedUserId].username,
-                        isTurn: users[socket.id].isTurn,
+                        oppUsername: matchData.oppUsername,
+                        isTurn: matchData.isTurn,
                     },
                 );
 
-                matchMsg = `You have been matched with ${username}`;
-                if (users[matchedUserId].isTurn) {
-                    matchMsg += ' Please send the first word!';
-                } else {
-                    matchMsg += ' Please wait for your opponent to send the first word!';
-                }
-                socket.broadcast.to(matchedUserId).emit('pending', matchMsg);
-                socket.broadcast.to(matchedUserId).emit(
+                socket.broadcast.to(matchData.oppUserId).emit('pending', matchData.oppMsg);
+                socket.broadcast.to(matchData.oppUserId).emit(
                     'match found',
                     {
                         oppUsername: username,
-                        isTurn: users[matchedUserId].isTurn,
+                        isTurn: matchData.oppIsTurn,
                     },
                 );
-
-                users[socket.id].oppenentId = matchedUserId;
-                users[socket.id].pending = false;
-                users[matchedUserId].oppenentId = socket.id;
-                users[matchedUserId].pending = false;
-                console.log('USERS', JSON.stringify(users));
             } else {
                 socket.emit(
                     'pending',
@@ -198,7 +131,7 @@ function ioServer(io) {
         });
 
         socket.on('chat message', (rawMsg) => {
-            const { oppenentId: oppId, isTurn } = users[socket.id];
+            const { oppenentId: oppId, isTurn } = users.getUser(socket.id);
             const msg = rawMsg.toLowerCase().trim();
 
             console.log('USERS_CHAT_MESSAGE', JSON.stringify(users));

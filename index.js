@@ -12,7 +12,7 @@ const authRoutes = require('./routes/auth');
 const accountRoutes = require('./routes/account');
 const { loginRequired, ensureCorrectUser } = require('./middleware/auth');
 
-require('./socketServer')(io);
+require('./game/socketServer')(io);
 
 app.use(cors());
 app.use(bodyParser.json());
