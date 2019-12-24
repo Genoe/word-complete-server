@@ -10,6 +10,7 @@ module.exports.setUpMatch = function setUpMatch(sockId, username) {
     const matchData = {
         userMsg: null,
         oppMsg: null,
+        foundMatch: !!matchedUserId,
         isTurn: users.getUser(sockId).isTurn,
         oppIsTurn: users.getUser(matchedUserId).isTurn,
         oppUsername: users.getUser(matchedUserId).username,
@@ -39,11 +40,11 @@ module.exports.setUpMatch = function setUpMatch(sockId, username) {
         }
 
         matchData.oppMsg = matchMsg;
-
-        return matchData;
+    } else {
+        matchData.userMsg = `Hello ${username}! Plese wait for an opponent to be found...`;
     }
 
-    return false;
+    return matchData;
 };
 
 module.exports.getMatchData = function getMatchFoundData(sockId) {

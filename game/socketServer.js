@@ -104,7 +104,7 @@ function ioServer(io) {
 
             const matchData = gameLogic.setUpMatch(socket.id, username);
 
-            if (matchData) {
+            if (matchData.foundMatch) {
                 socket.emit('pending', matchData.userMsg);
                 socket.emit(
                     'match found',
@@ -125,7 +125,7 @@ function ioServer(io) {
             } else {
                 socket.emit(
                     'pending',
-                    `Hello ${username}! Plese wait for an opponent to be found...`,
+                    matchData.userMsg,
                 );
             }
         });
