@@ -11,63 +11,16 @@ class User {
         this.words = new Set();
         this.lives = MAX_LIVES;
     }
-
-    get username() {
-        return this.username;
-    }
-
-    get pending() {
-        return this.pending;
-    }
-
-    set pending(val) {
-        this.pending = val;
-    }
-
-    get oppenentId() {
-        return this.oppenentId;
-    }
-
-    set oppenentId(val) {
-        this.oppenentId = val;
-    }
-
-    get isTurn() {
-        return this.isTurn;
-    }
-
-    set isTurn(val) {
-        this.isTurn = val;
-    }
-
-    get lastWord() {
-        return this.lastWord;
-    }
-
-    set lastWord(val) {
-        this.lastWord = val;
-    }
-
-    get words() {
-        return this.words();
-    }
-
-    get lives() {
-        return this.lives();
-    }
-
-    set lives(val) {
-        this.lives = val;
-    }
 }
 
 /**
  * Find an opponent with a status of pending. Return the socketio id of that user
  * If nothing is found, undefind is returned
+ * @param {SocketIO.Socket.id} sockId Id of the user we are finding an opponent for.
  * @returns {SocketIO.Socket.id}
  */
-function findOpponent() {
-    return Object.keys(users).find((key) => users[key].pending);
+function findOpponent(sockId) {
+    return Object.keys(users).find((key) => key !== sockId && users[key].pending);
 }
 
 /**
@@ -85,8 +38,8 @@ module.exports.addUser = function addUser(socketId, username) {
  * there are no other pending players
  * @param {SocketIO.Socket.id} sockId
  */
-module.exports.matchUsers = function setUpMatch(sockId) {
-    const oppSockId = findOpponent();
+module.exports.matchUsers = function matchUsers(sockId) {
+    const oppSockId = findOpponent(sockId);
 
     // one player goes first. The other, second.
     if (oppSockId) {
