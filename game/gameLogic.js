@@ -19,6 +19,12 @@ fs.readFile('./OfficialCrosswords.txt', (err, data) => {
     console.log('Finished generating words list!');
 });
 
+/**
+ * Add the user to our users object and find a match. If there is nobody to
+ * match up with, return a message that can be sent to the user.
+ * @param {SocketIO.Socket.id} sockId SocketIO id of the user
+ * @param {String} username The users chosen username
+ */
 module.exports.setUpMatch = function setUpMatch(sockId, username) {
     users.addUser(sockId, username);
 
@@ -147,6 +153,12 @@ function isBadWord(msg, id, oppId) {
     return result;
 }
 
+/**
+ * Validate the incoming chat message. Return responses for both user and
+ * opponent, including game over.
+ * @param {String} rawMsg incoming chat message
+ * @param {SocketIO.Socket.id} sockid Socket.io id of the user who sent the chat message
+ */
 module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
     const {
         oppenentId: oppId,
@@ -182,29 +194,15 @@ module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
             users.getUser(sockId).lastWord = msg;
             words.add(msg);
         } else if (!result.isValid) {
-            // socket.emit('bad word', {
-            //     msg: result[sockId].msg,
-            //     isTurn: result[sockId].isTurn,
-            // });
             responses.isBadWord = true;
             responses.resp = result[sockId].msg;
             responses.isTurn = result[sockId].isTurn;
-            // socket.broadcast.to(oppId).emit('bad word', {
-            //     msg: result[oppId].msg,
-            //     isTurn: result[oppId].isTurn,
-            // });
+
             responses.oppResp = result[oppId].msg;
             responses.oppIsTurn = result[oppId].isTurn;
             users.getUser(sockId).lives -= 1;
 
             if (users.getUser(sockId).lives === 0) {
-                // socket.emit('game over', {
-                //     msg: `GAME OVER! ${users.getUser(oppId).username} HAS WON!`,
-                // });
-                // socket.broadcast.to(oppId).emit('game over', {
-                //     msg: `CONGRATULATIONS YOU HAVE DEFEATED
-                //     ${users.getUser(sockId).username} IN A GAME OF WORD-COMPLETE!`,
-                // });
                 responses.gameOver = true;
                 responses.resp = `GAME OVER! ${oppUsername} HAS WON!`;
                 responses.oppResp = `CONGRATULATIONS YOU HAVE DEFEATED ${username} IN A GAME OF WORD-COMPLETE!`;
@@ -220,6 +218,11 @@ module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
     return responses;
 };
 
+/**
+ * Remove the user
+ * @param {SocketIO.Socket.id} sockid Socket.io id of the user to remove
+ * @returns {SocketIO.Socket.id}  return the opponent id, false if no opponent
+ */
 module.exports.removeUser = function removeUser(sockId) {
     return users.removeUser(sockId);
 };

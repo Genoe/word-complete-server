@@ -78,7 +78,6 @@ module.exports.removeUser = function removeUser(socketId) {
         users[users[socketId].oppenentId].oppenentId = null;
 
         oppId = users[socketId].oppenentId;
-        // socket.broadcast.to(users[socket.id].oppenentId).emit('opponent disconnected');
     }
 
     delete users[socketId];
