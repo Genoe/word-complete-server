@@ -111,3 +111,27 @@ module.exports.matchUsers = function setUpMatch(sockId) {
 module.exports.getUser = function getUser(sockId) {
     return users[sockId];
 };
+
+/**
+ * Remove a user and set any opponent to pending.
+ * @param {SocketIO.Socket.id} socketId socketIO socket id
+ * @returns {SocketIO.Socket.id} returns the socketIO id of the opponent. False if no opponent
+ */
+module.exports.removeUser = function removeUser(socketId) {
+    let oppId = false;
+
+    if (users[socketId] && users[socketId].oppenentId) {
+        users[users[socketId].oppenentId].pending = true;
+        users[users[socketId].oppenentId].oppenentId = null;
+
+        oppId = users[socketId].oppenentId;
+        // socket.broadcast.to(users[socket.id].oppenentId).emit('opponent disconnected');
+    }
+
+    delete users[socketId];
+
+    console.log('user disconnected');
+    console.log(`Connected Users: ${JSON.stringify(users)}`);
+
+    return oppId;
+};

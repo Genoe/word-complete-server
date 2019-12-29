@@ -72,16 +72,11 @@ function ioServer(io) {
         });
 
         socket.on('disconnect', () => {
-            if (users[socket.id] && users[socket.id].oppenentId) {
-                users[users[socket.id].oppenentId].pending = true;
-                users[users[socket.id].oppenentId].oppenentId = null;
-                socket.broadcast.to(users[socket.id].oppenentId).emit('opponent disconnected');
+            const oppId = gameLogic.removeUser(socket.id);
+
+            if (oppId) {
+                socket.broadcast.to(oppId).emit('opponent disconnected');
             }
-
-            delete users[socket.id];
-
-            console.log('user disconnected');
-            console.log(`Connected Users: ${JSON.stringify(users)}`);
         });
     });
 }

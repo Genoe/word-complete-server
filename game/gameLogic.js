@@ -214,3 +214,7 @@ module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
 
     return responses;
 };
+
+module.exports.removeUser = function removeUser(sockId) {
+    return users.removeUser(sockId);
+};
