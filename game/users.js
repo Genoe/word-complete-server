@@ -1,21 +1,5 @@
-const fs = require('fs');
-
 const MAX_LIVES = 3;
 const users = {};
-const words = new Set();
-
-// Words come from https://github.com/ciamkr/English-words-list/blob/master/OfficialCrosswords
-fs.readFile('../OfficialCrosswords.txt', (err, data) => {
-    console.log('generating words list...');
-    // eslint-disable-next-line no-throw-literal
-    if (err) throw err;
-
-    const splitted = data.toString().split('\r\n');
-
-    splitted.forEach((word) => words.add(word));
-
-    console.log('Finished generating words list!');
-});
 
 class User {
     constructor(username) {
