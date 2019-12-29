@@ -7,7 +7,7 @@ const users = require('./users');
 const dictionary = new Set();
 
 // Words come from https://github.com/ciamkr/English-words-list/blob/master/OfficialCrosswords
-fs.readFile('../OfficialCrosswords.txt', (err, data) => {
+fs.readFile('./OfficialCrosswords.txt', (err, data) => {
     console.log('generating words list...');
     // eslint-disable-next-line no-throw-literal
     if (err) throw err;
@@ -20,21 +20,26 @@ fs.readFile('../OfficialCrosswords.txt', (err, data) => {
 });
 
 module.exports.setUpMatch = function setUpMatch(sockId, username) {
+    users.addUser(sockId, username);
+
     const matchedUserId = users.matchUsers(sockId);
+
     const matchData = {
         userMsg: null,
         oppMsg: null,
         foundMatch: !!matchedUserId,
-        isTurn: users.getUser(sockId).isTurn,
-        oppIsTurn: users.getUser(matchedUserId).isTurn,
-        oppUsername: users.getUser(matchedUserId).username,
+        isTurn: null,
+        oppIsTurn: null,
+        oppUsername: null,
         oppUserId: matchedUserId,
     };
 
-    users.addUser(sockId, username);
-
     if (matchedUserId) {
         let matchMsg;
+
+        matchData.isTurn = users.getUser(sockId).isTurn;
+        matchData.oppIsTurn = users.getUser(matchedUserId).isTurn;
+        matchData.oppUsername = users.getUser(matchedUserId).username;
 
         // Emit 'pending' and then 'match found' to each player
         matchMsg = `You have been matched with ${users.getUser(matchedUserId).username}`;
@@ -197,7 +202,7 @@ module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
                 //     msg: `GAME OVER! ${users.getUser(oppId).username} HAS WON!`,
                 // });
                 // socket.broadcast.to(oppId).emit('game over', {
-                //     msg: `CONGRATULATIONS YOU HAVE DEFEATED 
+                //     msg: `CONGRATULATIONS YOU HAVE DEFEATED
                 //     ${users.getUser(sockId).username} IN A GAME OF WORD-COMPLETE!`,
                 // });
                 responses.gameOver = true;
