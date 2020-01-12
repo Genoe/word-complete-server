@@ -154,6 +154,21 @@ function isBadWord(msg, id, oppId) {
 }
 
 /**
+ * Give users new deadlines
+ * @param {SocketIO.Socket.id} user
+ * @param {SocketIO.Socket.id} opponent
+ */
+function setChatDeadline(sockId, oppSockId) {
+    const user = users.getUser(sockId);
+    const opponent = users.getUser(oppSockId);
+
+    user.deadline = null;
+    opponent.deadline = new Date() + 30000;
+
+    // console.log('DEADLINE', JSON.stringify(user), JSON.stringify(opponent));
+}
+
+/**
  * A function to swap turns after a user runs out of time
  */
 module.exports.swapTurnsTimer = function swapTurnsTimer(sockId) {
@@ -190,6 +205,7 @@ module.exports.swapTurnsTimer = function swapTurnsTimer(sockId) {
         users.getUser(oppId).isTurn = true;
 
         users.getUser(sockId).lives -= 1;
+        setChatDeadline(sockId, oppId);
 
         if (users.getUser(sockId).lives === 0) {
             responses.gameOver = true;
@@ -213,6 +229,7 @@ module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
         isTurn,
         username,
         words,
+        deadline,
     } = users.getUser(sockId);
     const { username: oppUsername } = users.getUser(oppId);
     const msg = rawMsg.toLowerCase().trim();
@@ -233,6 +250,8 @@ module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
     // with the game in the browser or using other tools.
     if (!isTurn) {
         console.log('Player submitted when it was not their turn!');
+    } else if (deadline > new Date()) {
+        console.log('Player submitted a message later than they should have!'); // front end UI should not allow this
     } else {
         // user can lose a turn if it's not a word or doesn't match the ending letter of the previous word
         const result = isBadWord(msg, sockId, oppId);
@@ -259,6 +278,7 @@ module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
     }
     // TODO: consider putting the check for 0 lives out here
     if (isTurn) {
+        setChatDeadline(sockId, oppId);
         users.getUser(sockId).isTurn = !isTurn;
         users.getUser(oppId).isTurn = isTurn;
     }

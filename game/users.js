@@ -10,6 +10,7 @@ class User {
         this.lastWord = null;
         this.words = new Set();
         this.lives = MAX_LIVES;
+        this.deadline = null;
     }
 }
 
@@ -43,13 +44,21 @@ module.exports.matchUsers = function matchUsers(sockId) {
 
     // one player goes first. The other, second.
     if (oppSockId) {
+        const deadline = new Date() + 30000;
+
         users[sockId].isTurn = Math.random() >= 0.5;
-        users[oppSockId].isTurn = !users[oppSockId].isTurn;
+        users[oppSockId].isTurn = !users[sockId].isTurn;
 
         users[sockId].oppenentId = oppSockId;
         users[sockId].pending = false;
         users[oppSockId].oppenentId = sockId;
         users[oppSockId].pending = false;
+
+        if (users[sockId].isTurn) {
+            users[sockId].deadline = deadline;
+        } else {
+            users[oppSockId].deadline = deadline;
+        }
 
         return oppSockId;
     }
