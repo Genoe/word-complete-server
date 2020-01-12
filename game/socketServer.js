@@ -71,6 +71,29 @@ function ioServer(io) {
             }
         });
 
+        socket.on('timer end', () => {
+            const result = gameLogic.swapTurnsTimer(socket.id);
+
+            if (result.gameOver) {
+                socket.emit('game over', {
+                    msg: result.resp,
+                });
+                socket.broadcast.to(result.oppId).emit('game over', {
+                    msg: result.oppResp,
+                });
+            } else {
+                socket.emit('bad word', {
+                    msg: result.resp,
+                    isTurn: result.isTurn,
+                });
+
+                socket.broadcast.to(result.oppId).emit('bad word', {
+                    msg: result.oppResp,
+                    isTurn: result.oppIsTurn,
+                });
+            }
+        });
+
         socket.on('disconnect', () => {
             const oppId = gameLogic.removeUser(socket.id);
 

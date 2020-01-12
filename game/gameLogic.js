@@ -154,6 +154,54 @@ function isBadWord(msg, id, oppId) {
 }
 
 /**
+ * A function to swap turns after a user runs out of time
+ */
+module.exports.swapTurnsTimer = function swapTurnsTimer(sockId) {
+    const {
+        oppenentId: oppId,
+        isTurn,
+        username,
+    } = users.getUser(sockId);
+    const { username: oppUsername } = users.getUser(oppId);
+    // const msg = rawMsg.toLowerCase().trim();
+    const responses = {
+        resp: null,
+        isTurn: null,
+        oppResp: null,
+        oppIsTurn: null,
+        gameOver: false,
+        oppId,
+    };
+
+    console.log('USERS_CHAT_MESSAGE', JSON.stringify(users));
+
+    // Do nothing if it is not their turn. As of now, this should only be possible if they are messing
+    // with the game in the browser or using other tools.
+    if (!isTurn) {
+        console.log('Player submitted when it was not their turn!');
+    } else {
+        responses.isBadWord = true;
+        responses.resp = `You ran out of time! ${oppUsername}s turn!`;
+        responses.isTurn = false;
+        users.getUser(sockId).isTurn = false;
+
+        responses.oppResp = `${username} ran out of time! Your turn!`;
+        responses.oppIsTurn = true;
+        users.getUser(oppId).isTurn = true;
+
+        users.getUser(sockId).lives -= 1;
+
+        if (users.getUser(sockId).lives === 0) {
+            responses.gameOver = true;
+            responses.resp = `GAME OVER! ${oppUsername} HAS WON!`;
+            responses.oppResp = `CONGRATULATIONS YOU HAVE DEFEATED ${username} IN A GAME OF WORD-COMPLETE!`;
+        }
+    }
+
+    return responses;
+};
+
+/**
  * Validate the incoming chat message. Return responses for both user and
  * opponent, including game over.
  * @param {String} rawMsg incoming chat message
