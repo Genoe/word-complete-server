@@ -178,7 +178,7 @@ module.exports.swapTurnsTimer = function swapTurnsTimer(sockId) {
         username,
     } = users.getUser(sockId);
     const { username: oppUsername } = users.getUser(oppId);
-    // const msg = rawMsg.toLowerCase().trim();
+
     const responses = {
         resp: null,
         isTurn: null,
@@ -206,6 +206,9 @@ module.exports.swapTurnsTimer = function swapTurnsTimer(sockId) {
 
         users.getUser(sockId).lives -= 1;
         setChatDeadline(sockId, oppId);
+
+        // Player ran out of time, now their opponent has to choose a new word based on the opponents own last word.
+        users.getUser(sockId).lastWord = users.getUser(oppId).lastWord;
 
         if (users.getUser(sockId).lives === 0) {
             responses.gameOver = true;
@@ -243,7 +246,6 @@ module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
         oppId,
     };
 
-    console.log('USERS_CHAT_MESSAGE', JSON.stringify(users));
     console.log(`message: ${msg}`);
 
     // Do nothing if it is not their turn. As of now, this should only be possible if they are messing
