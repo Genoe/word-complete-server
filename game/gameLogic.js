@@ -38,6 +38,8 @@ module.exports.setUpMatch = function setUpMatch(sockId, username) {
         oppIsTurn: null,
         oppUsername: null,
         oppUserId: matchedUserId,
+        lives: null,
+        oppLives: null,
     };
 
     if (matchedUserId) {
@@ -65,6 +67,9 @@ module.exports.setUpMatch = function setUpMatch(sockId, username) {
         }
 
         matchData.oppMsg = matchMsg;
+
+        matchData.lives = users.getUser(sockId).lives;
+        matchData.oppLives = users.getUser(sockId).lives;
     } else {
         matchData.userMsg = `Hello ${username}! Plese wait for an opponent to be found...`;
     }
@@ -182,6 +187,7 @@ module.exports.swapTurnsTimer = function swapTurnsTimer(sockId) {
     const responses = {
         resp: null,
         isTurn: null,
+        lives: null,
         oppResp: null,
         oppIsTurn: null,
         gameOver: false,
@@ -205,6 +211,7 @@ module.exports.swapTurnsTimer = function swapTurnsTimer(sockId) {
         users.getUser(oppId).isTurn = true;
 
         users.getUser(sockId).lives -= 1;
+        responses.lives = users.getUser(sockId).lives;
         setChatDeadline(sockId, oppId);
 
         // Player ran out of time, now their opponent has to choose a new word based on the opponents own last word.
@@ -239,6 +246,7 @@ module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
     const responses = {
         resp: null,
         isTurn: null,
+        lives: null,
         oppResp: null,
         oppIsTurn: null,
         gameOver: false,
@@ -270,6 +278,7 @@ module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
             responses.oppResp = result[oppId].msg;
             responses.oppIsTurn = result[oppId].isTurn;
             users.getUser(sockId).lives -= 1;
+            responses.lives = users.getUser(sockId).lives;
 
             if (users.getUser(sockId).lives === 0) {
                 responses.gameOver = true;

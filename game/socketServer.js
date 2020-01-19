@@ -28,6 +28,7 @@ function ioServer(io) {
                     {
                         oppUsername: matchData.oppUsername,
                         isTurn: matchData.isTurn,
+                        lives: matchData.lives,
                     },
                 );
 
@@ -37,6 +38,7 @@ function ioServer(io) {
                     {
                         oppUsername: username,
                         isTurn: matchData.oppIsTurn,
+                        lives: matchData.lives,
                     },
                 );
             } else {
@@ -61,6 +63,7 @@ function ioServer(io) {
                 socket.emit('bad word', {
                     msg: result.resp,
                     isTurn: result.isTurn,
+                    lives: result.lives,
                 });
                 socket.broadcast.to(result.oppId).emit('bad word', {
                     msg: result.oppResp,
@@ -85,6 +88,7 @@ function ioServer(io) {
                 socket.emit('bad word', {
                     msg: result.resp,
                     isTurn: result.isTurn,
+                    lives: result.lives,
                 });
 
                 socket.broadcast.to(result.oppId).emit('bad word', {
