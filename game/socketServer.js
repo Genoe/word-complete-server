@@ -16,6 +16,16 @@ function ioServer(io) {
     io.sockets.on('connection', (socket) => {
         console.log('a user connected');
 
+        socket.use((packet, next) => {
+            console.log('PACKET', packet);
+            if (packet[0] === 'chat message' && packet[1] === '') {
+                console.log('User submitted an empty string');
+                return next(new Error('User submitted an empty string')); // error event on client
+            }
+
+            return next();
+        });
+
         socket.on('username', (username) => {
             console.log(`User: ${username} has connected`);
 
