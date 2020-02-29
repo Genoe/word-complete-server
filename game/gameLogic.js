@@ -12,7 +12,7 @@ fs.readFile('./OfficialCrosswords.txt', (err, data) => {
     // eslint-disable-next-line no-throw-literal
     if (err) throw err;
 
-    const splitted = data.toString().split('\r\n');
+    const splitted = data.toString().split('\n');
 
     splitted.forEach((word) => dictionary.add(word));
 
