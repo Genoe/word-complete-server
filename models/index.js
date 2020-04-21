@@ -13,3 +13,4 @@ mongoose.connect(process.env.DB_URL, {
 // The idea is to only have to require index.js in other parts of the application instead of
 // requiring in each individual file.
 module.exports.User = require('./user');
+module.exports.PwdResetToken = require('./pwdResetToken');
