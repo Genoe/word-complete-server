@@ -1,3 +1,4 @@
 SECRET_KEY=random text goes here
 PORT=8000
 DB_URL=mongodb://localhost/your-server-name
+SENDGRID_API_KEY=your sendgrid api key goes here

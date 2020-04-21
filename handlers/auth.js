@@ -1,7 +1,11 @@
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
+const crypto = require('crypto');
+const sgMail = require('@sendgrid/mail');
 const db = require('../models'); // looks for index.js by default
 const errorFormatter = require('./errorFormat');
+
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 exports.signup = async function signup(req, res, next) {
     try {
@@ -87,6 +91,61 @@ exports.signin = async function signin(req, res, next) {
         return next({
             status: 400,
             message: 'Error. Invalid Email/Password',
+        });
+    }
+};
+
+exports.resetpassword = async function resetpassword(req, res, next) {
+    try {
+        const validationErrors = validationResult(req).formatWith(errorFormatter);
+
+        if (!validationErrors.isEmpty()) {
+            return next({
+                status: 422,
+                message: validationErrors.array(),
+            });
+        }
+
+        // find a user
+        const user = await db.User.findOne({
+            email: req.body.email,
+        });
+
+        if (user) {
+            const resetToken = await db.PwdResetToken.create({
+                _userId: user.id,
+                resetToken: crypto.randomBytes(16).toString('hex'),
+            });
+
+            const url = `https://wordcompleteonline.com/resetpassword/${resetToken.resetToken}`;
+            const msg = {
+                to: user.email,
+                from: 'passwordreset@wordcompleteonline.com',
+                subject: 'Reset Password DO NOT REPLY',
+                text: `Reset password for wordcompleteonline.com by clicking here or 
+                    copying the link into your browser: ${url}`,
+                html: `<p>You are receiving this email because you (or someone else) has requested the reset of the 
+                    password for your account.</p>
+                    <p>Please click on the following link,
+                    or paste this into your browser to complete the process: ${url}</p>`,
+            };
+
+            sgMail.send(msg);
+
+            return res.status(200).json({
+                message: 'Please Check Your Email',
+            });
+        }
+
+        return next({
+            status: 400,
+            message: 'Sorry, but there is no account with this email. Please check for typos and try again.',
+        });
+    } catch (err) {
+        console.log(err);
+        return next({
+            status: 400,
+            message: 'There was an error with the request. Please try again later.',
         });
     }
 };
