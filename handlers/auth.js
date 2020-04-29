@@ -118,19 +118,21 @@ exports.resetpassword = async function resetpassword(req, res, next) {
             });
 
             const url = `https://wordcompleteonline.com/resetpassword/${resetToken.resetToken}`;
-            const msg = {
-                to: user.email,
-                from: 'passwordreset@wordcompleteonline.com',
-                subject: 'Reset Password DO NOT REPLY',
-                text: `Reset password for wordcompleteonline.com by clicking here or 
-                    copying the link into your browser: ${url}`,
-                html: `<p>You are receiving this email because you (or someone else) has requested the reset of the 
-                    password for your account.</p>
-                    <p>Please click on the following link,
-                    or paste this into your browser to complete the process: ${url}</p>`,
-            };
 
-            sgMail.send(msg);
+            await sgMail.send({
+                to: user.email,
+                from: {
+                    email: 'passwordreset@wordcompleteonline.com',
+                    name: 'Word Complete Online',
+                },
+                templateId: process.env.SENDGRID_PWD_RESET_TEMPLATE,
+                dynamicTemplateData: {
+                    reset_url: url,
+                },
+                asm: {
+                    groupId: +process.env.SENDGRID_UNSUBSCRIBE_GROUP,
+                },
+            });
 
             return res.status(200).json({
                 message: 'Please Check Your Email',
@@ -142,7 +144,6 @@ exports.resetpassword = async function resetpassword(req, res, next) {
             message: 'Sorry, but there is no account with this email. Please check for typos and try again.',
         });
     } catch (err) {
-        console.log(err);
         return next({
             status: 400,
             message: 'There was an error with the request. Please try again later.',
