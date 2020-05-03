@@ -117,7 +117,7 @@ exports.reqPwdReset = async function resetpassword(req, res, next) {
                 resetToken: crypto.randomBytes(16).toString('hex'),
             });
 
-            const url = `https://wordcompleteonline.com/resetpassword/${resetToken.resetToken}`;
+            const url = `https://wordcompleteonline.com/resetpassword?token=${resetToken.resetToken}`;
 
             await sgMail.send({
                 to: user.email,
