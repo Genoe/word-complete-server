@@ -95,7 +95,7 @@ exports.signin = async function signin(req, res, next) {
     }
 };
 
-exports.resetpassword = async function resetpassword(req, res, next) {
+exports.reqPwdReset = async function resetpassword(req, res, next) {
     try {
         const validationErrors = validationResult(req).formatWith(errorFormatter);
 
@@ -142,6 +142,54 @@ exports.resetpassword = async function resetpassword(req, res, next) {
         return next({
             status: 400,
             message: 'Sorry, but there is no account with this email. Please check for typos and try again.',
+        });
+    } catch (err) {
+        return next({
+            status: 400,
+            message: 'There was an error with the request. Please try again later.',
+        });
+    }
+};
+
+exports.pwdReset = async function reqPwdReset(req, res, next) {
+    try {
+        const validationErrors = validationResult(req).formatWith(errorFormatter);
+
+        if (!validationErrors.isEmpty()) {
+            return next({
+                status: 422,
+                message: validationErrors.array(),
+            });
+        }
+
+        if (req.body.password !== req.body.passwordConfirm) {
+            return next({
+                status: 422,
+                message: 'Passwords do not match.',
+            });
+        }
+
+        const pwdResetToken = await db.PwdResetToken.findOne({ resetToken: req.body.token });
+
+        if (pwdResetToken) {
+            // eslint-disable-next-line no-underscore-dangle
+            const user = await db.User.findById(pwdResetToken._userId);
+            if (user) {
+                user.password = req.body.password;
+                await user.save(); // save instead of findByIdAndUpdate to trigger pre-save hook
+                return res.status(200).json({
+                    message: 'Successfully reset password.',
+                });
+            }
+            return next({
+                status: 422,
+                message: 'No user is associated with this token.',
+            });
+        }
+
+        return next({
+            status: 409,
+            message: 'Token has expired',
         });
     } catch (err) {
         return next({
