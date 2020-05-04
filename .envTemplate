@@ -2,3 +2,5 @@ SECRET_KEY=random text goes here
 PORT=8000
 DB_URL=mongodb://localhost/your-server-name
 SENDGRID_API_KEY=your sendgrid api key goes here
+SENDGRID_PWD_RESET_TEMPLATE=your sendgrid dynamic template id goes here
+SENDGRID_UNSUBSCRIBE_GROUP=your sendgrid unsubscribe group id goes here
