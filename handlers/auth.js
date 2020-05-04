@@ -135,7 +135,7 @@ exports.reqPwdReset = async function resetpassword(req, res, next) {
             });
 
             return res.status(200).json({
-                message: 'Please Check Your Email',
+                message: ['Please check your email and follow the instructions.', 'You can close this window.'],
             });
         }
 
