@@ -4,6 +4,9 @@ require('dotenv').config();
 process.env.DB_URL = 'mongodb://localhost/word-complete-test';
 process.env.PORT = 9090;
 
+// test key from: https://developers.google.com/recaptcha/docs/faq
+process.env.RECAPTCHA_SECRET = '6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe';
+
 const request = require('supertest');
 const { expect } = require('chai');
 const { User } = require('../models');
@@ -22,6 +25,7 @@ describe('api/auth', () => {
                     username: 'potatoes',
                     password: 'morepotatoes',
                     email: 'potatoes@potatoes.com',
+                    captchaToken: 'test',
                 });
 
             expect(res.status).to.equal(200);
@@ -37,6 +41,7 @@ describe('api/auth', () => {
                     username: 'potatoes',
                     password: '1234567',
                     email: 'potatoes@potatoes.com',
+                    captchaToken: 'test',
                 });
 
             expect(res.status).to.equal(422);
@@ -53,6 +58,7 @@ describe('api/auth', () => {
                     username: 'po',
                     password: '12345678',
                     email: 'potatoes@potatoes.com',
+                    captchaToken: 'test',
                 });
 
             expect(res.status).to.equal(422);
@@ -69,6 +75,7 @@ describe('api/auth', () => {
                     username: 'potatoes',
                     password: '12345678',
                     email: 'potatoes@potatoes',
+                    captchaToken: 'test',
                 });
 
             expect(res.status).to.equal(422);
@@ -85,6 +92,7 @@ describe('api/auth', () => {
                     username: '',
                     password: '',
                     email: 'potatoes@potatoes',
+                    captchaToken: 'test',
                 });
 
             expect(res.status).to.equal(422);
@@ -108,6 +116,7 @@ describe('api/auth', () => {
                     username: 'alreadytaken',
                     password: 'morepotatoes',
                     email: 'potatoes@potatoes.com',
+                    captchaToken: 'test',
                 });
         });
 
@@ -122,6 +131,7 @@ describe('api/auth', () => {
                     username: 'alreadytaken',
                     password: 'morepotatoes',
                     email: 'potatoes1@potatoes.com',
+                    captchaToken: 'test',
                 });
 
             // Only sending 422 for vaildation errors from express-validator
@@ -144,6 +154,7 @@ describe('api/auth', () => {
                     username: 'signintest',
                     password: '123potatoes',
                     email: 'potatoes94@potatoes.com',
+                    captchaToken: 'test',
                 });
         });
 
@@ -157,6 +168,7 @@ describe('api/auth', () => {
                 .send({
                     password: '123potatoes',
                     email: 'potatoes94@potatoes.com',
+                    captchaToken: 'test',
                 });
 
             expect(res.status).to.equal(200);
@@ -171,6 +183,7 @@ describe('api/auth', () => {
                 .send({
                     password: '123potatoes',
                     email: 'potatoes95@potatoes.com',
+                    captchaToken: 'test',
                 });
 
             expect(res.status).to.equal(400);
@@ -186,6 +199,7 @@ describe('api/auth', () => {
                 .send({
                     password: '123potatoes2',
                     email: 'potatoes94@potatoes.com',
+                    captchaToken: 'test',
                 });
 
             expect(res.status).to.equal(400);
@@ -212,6 +226,7 @@ describe('api/users', () => {
                     username: 'testing',
                     password: 'potatoes',
                     email: 'potatoes@potatoes.com',
+                    captchaToken: 'test',
                 });
 
             token = res.body.token;
@@ -224,6 +239,7 @@ describe('api/users', () => {
                     username: 'taken',
                     password: 'potatoes',
                     email: 'taken@potatoes.com',
+                    captchaToken: 'test',
                 });
         });
 
