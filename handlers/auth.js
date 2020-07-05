@@ -1,23 +1,13 @@
 require('dotenv').config();
 const jwt = require('jsonwebtoken');
-const { validationResult } = require('express-validator');
 const crypto = require('crypto');
 const sgMail = require('@sendgrid/mail');
 const db = require('../models'); // looks for index.js by default
-const errorFormatter = require('./errorFormat');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 exports.signup = async function signup(req, res, next) {
     try {
-        const validationErrors = validationResult(req).formatWith(errorFormatter);
-        if (!validationErrors.isEmpty()) {
-            return next({
-                status: 422,
-                message: validationErrors.array(),
-            });
-        }
-
         // create a user
         const user = await db.User.create(req.body);
         const { id, username } = user;
@@ -101,15 +91,6 @@ exports.signin = async function signin(req, res, next) {
 
 exports.reqPwdReset = async function reqPwdReset(req, res, next) {
     try {
-        const validationErrors = validationResult(req).formatWith(errorFormatter);
-
-        if (!validationErrors.isEmpty()) {
-            return next({
-                status: 422,
-                message: validationErrors.array(),
-            });
-        }
-
         // find a user
         const user = await db.User.findOne({
             email: req.body.email,
@@ -157,15 +138,6 @@ exports.reqPwdReset = async function reqPwdReset(req, res, next) {
 
 exports.pwdReset = async function pwdReset(req, res, next) {
     try {
-        const validationErrors = validationResult(req).formatWith(errorFormatter);
-
-        if (!validationErrors.isEmpty()) {
-            return next({
-                status: 422,
-                message: validationErrors.array(),
-            });
-        }
-
         if (req.body.password !== req.body.passwordConfirm) {
             return next({
                 status: 422,
