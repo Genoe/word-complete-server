@@ -3,48 +3,10 @@ const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const crypto = require('crypto');
 const sgMail = require('@sendgrid/mail');
-const axios = require('axios');
-const querystring = require('querystring');
 const db = require('../models'); // looks for index.js by default
 const errorFormatter = require('./errorFormat');
 
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
-async function validateRecaptcha(req) {
-    let errMsg;
-    let verify = { success: true };
-
-    if (req.body.captchaToken) {
-        const captchaData = querystring.stringify({
-            secret: process.env.RECAPTCHA_SECRET,
-            response: req.body.captchaToken,
-            remoteip: req.connection.remoteAddress,
-        });
-
-        verify = await axios({
-            method: 'post',
-            url: 'https://www.google.com/recaptcha/api/siteverify',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            data: captchaData,
-        });
-
-        console.log('RECAPTCHA RESULT', verify.data);
-        verify.success = verify.data.success;
-    } else {
-        verify.success = false;
-    }
-
-    if (!verify.success) {
-        errMsg = 'Please successfully complete the ReCaptcha';
-    }
-
-    return {
-        success: verify.success,
-        errMsg,
-    };
-}
 
 exports.signup = async function signup(req, res, next) {
     try {
@@ -99,17 +61,6 @@ exports.signin = async function signin(req, res, next) {
 
         console.log('LOG IN REQUEST', req.body);
 
-        const recaptcha = await validateRecaptcha(req);
-
-        console.log('RECAPCHA VERIFICATION', recaptcha);
-
-        if (!recaptcha.success) {
-            return next({
-                status: 400,
-                message: recaptcha.errMsg,
-            });
-        }
-
         // find a user
         const user = await db.User.findOne({
             email: req.body.email,
@@ -148,7 +99,7 @@ exports.signin = async function signin(req, res, next) {
     }
 };
 
-exports.reqPwdReset = async function resetpassword(req, res, next) {
+exports.reqPwdReset = async function reqPwdReset(req, res, next) {
     try {
         const validationErrors = validationResult(req).formatWith(errorFormatter);
 
@@ -204,7 +155,7 @@ exports.reqPwdReset = async function resetpassword(req, res, next) {
     }
 };
 
-exports.pwdReset = async function reqPwdReset(req, res, next) {
+exports.pwdReset = async function pwdReset(req, res, next) {
     try {
         const validationErrors = validationResult(req).formatWith(errorFormatter);
 

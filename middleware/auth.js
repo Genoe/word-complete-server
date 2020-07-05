@@ -1,6 +1,8 @@
 /* eslint-disable consistent-return */
 require('dotenv').config();
+const querystring = require('querystring');
 const jwt = require('jsonwebtoken');
+const axios = require('axios');
 
 // make sure the user is logged in - Authentication
 // Not using async because the jwt library uses callbacks
@@ -48,4 +50,41 @@ exports.ensureCorrectUser = function ensureCorrectUser(req, res, next) {
             message: 'Unauthorized',
         });
     }
+};
+
+exports.validateRecaptcha = async function validateRecaptcha(req, res, next) {
+    let errMsg;
+    let verify = { success: true };
+    console.log('IN RECAPTCHA VAL', req.body);
+    if (req.body.captchaToken) {
+        const captchaData = querystring.stringify({
+            secret: process.env.RECAPTCHA_SECRET,
+            response: req.body.captchaToken,
+            remoteip: req.connection.remoteAddress,
+        });
+
+        verify = await axios({
+            method: 'post',
+            url: 'https://www.google.com/recaptcha/api/siteverify',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            data: captchaData,
+        });
+
+        console.log('RECAPTCHA RESULT', verify.data);
+        verify.success = verify.data.success;
+    } else {
+        verify.success = false;
+    }
+
+    if (!verify.success) {
+        errMsg = 'Please successfully complete the ReCaptcha';
+        return next({
+            status: 401,
+            message: errMsg,
+        });
+    }
+
+    return next();
 };
