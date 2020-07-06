@@ -1,20 +1,10 @@
 require('dotenv').config();
 
 const jwt = require('jsonwebtoken');
-const { validationResult } = require('express-validator');
 const db = require('../models');
-const errorFormatter = require('./errorFormat');
 
 exports.updateUsername = async function updateUsername(req, res, next) {
     try {
-        const validationErrors = validationResult(req).formatWith(errorFormatter);
-        if (!validationErrors.isEmpty()) {
-            return next({
-                status: 422,
-                message: validationErrors.array(),
-            });
-        }
-
         const user = await db.User.findByIdAndUpdate(
             req.params.id,
             {
