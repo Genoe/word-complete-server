@@ -20,13 +20,16 @@ exports.validateFields = function validateFields(req, res, next) {
 exports.validateRecaptcha = async function validateRecaptcha(req, res, next) {
     let validateReq;
     const verify = { success: true };
-    console.log('IN RECAPTCHA VAL', req.body);
+
     if (req.body.captchaToken) {
+        const ip = ((req.headers['x-forwarded-for'] || '').split(',').pop().trim() || req.connection.remoteAddress);
         const captchaData = querystring.stringify({
             secret: process.env.RECAPTCHA_SECRET,
             response: req.body.captchaToken,
-            remoteip: req.connection.remoteAddress,
+            remoteip: ip,
         });
+
+        console.log('USER IP ADDRESS', ip);
 
         try {
             validateReq = await axios({
