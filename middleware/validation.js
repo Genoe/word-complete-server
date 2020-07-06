@@ -1,5 +1,5 @@
 const querystring = require('querystring');
-const axios = require('axios');
+const axios = require('axios').default;
 const { validationResult } = require('express-validator');
 
 const errorFormatter = ({ msg }) => `${msg}`;
@@ -18,8 +18,8 @@ exports.validateFields = function validateFields(req, res, next) {
 };
 
 exports.validateRecaptcha = async function validateRecaptcha(req, res, next) {
-    let errMsg;
-    let verify = { success: true };
+    let validateReq;
+    const verify = { success: true };
     console.log('IN RECAPTCHA VAL', req.body);
     if (req.body.captchaToken) {
         const captchaData = querystring.stringify({
@@ -28,26 +28,37 @@ exports.validateRecaptcha = async function validateRecaptcha(req, res, next) {
             remoteip: req.connection.remoteAddress,
         });
 
-        verify = await axios({
-            method: 'post',
-            url: 'https://www.google.com/recaptcha/api/siteverify',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            data: captchaData,
-        });
+        try {
+            validateReq = await axios({
+                method: 'post',
+                url: 'https://www.google.com/recaptcha/api/siteverify',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                data: captchaData,
+            });
 
-        console.log('RECAPTCHA RESULT', verify.data);
-        verify.success = verify.data.success;
+            console.log('RECAPTCHA RESULT', validateReq.data);
+            verify.success = validateReq.data.success;
+
+            if (!verify.success && validateReq.data['error-codes'][0] === 'timeout-or-duplicate') {
+                verify.errMsg = 'Verification expired. Please check the checkbox again.';
+            }
+        } catch (e) {
+            console.log('ERROR REQUESTING CAPTCHA VALIDATION', e);
+            verify.success = false;
+            verify.errMsg = 'There was an issue validating the checkbox. Please try again later.';
+        }
     } else {
         verify.success = false;
     }
 
     if (!verify.success) {
-        errMsg = 'Please successfully complete the ReCaptcha';
+        verify.errMsg = verify.errMsg || 'Please successfully check the checkbox';
+
         return next({
             status: 401,
-            message: errMsg,
+            message: verify.errMsg,
         });
     }
 
