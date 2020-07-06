@@ -138,13 +138,6 @@ exports.reqPwdReset = async function reqPwdReset(req, res, next) {
 
 exports.pwdReset = async function pwdReset(req, res, next) {
     try {
-        if (req.body.password !== req.body.passwordConfirm) {
-            return next({
-                status: 422,
-                message: 'Passwords do not match.',
-            });
-        }
-
         const pwdResetToken = await db.PwdResetToken.findOne({ resetToken: req.body.token });
 
         if (pwdResetToken) {

@@ -17,6 +17,17 @@ exports.validateFields = function validateFields(req, res, next) {
     });
 };
 
+exports.checkPwdConfirm = function checkPwdConfirm(req, res, next) {
+    if (req.body.password === req.body.passwordConfirm) {
+        return next();
+    }
+
+    return next({
+        status: 422,
+        message: 'Passwords do not match',
+    });
+};
+
 exports.validateRecaptcha = async function validateRecaptcha(req, res, next) {
     let validateReq;
     const verify = { success: true };

@@ -24,6 +24,7 @@ describe('api/auth', () => {
                 .send({
                     username: 'potatoes',
                     password: 'morepotatoes',
+                    passwordConfirm: 'morepotatoes',
                     email: 'potatoes@potatoes.com',
                     captchaToken: 'test',
                 });
@@ -40,6 +41,7 @@ describe('api/auth', () => {
                 .send({
                     username: 'potatoes',
                     password: '1234567',
+                    passwordConfirm: '1234567',
                     email: 'potatoes@potatoes.com',
                     captchaToken: 'test',
                 });
@@ -57,6 +59,7 @@ describe('api/auth', () => {
                 .send({
                     username: 'po',
                     password: '12345678',
+                    passwordConfirm: '12345678',
                     email: 'potatoes@potatoes.com',
                     captchaToken: 'test',
                 });
@@ -74,6 +77,7 @@ describe('api/auth', () => {
                 .send({
                     username: 'potatoes',
                     password: '12345678',
+                    passwordConfirm: '12345678',
                     email: 'potatoes@potatoes',
                     captchaToken: 'test',
                 });
@@ -91,6 +95,7 @@ describe('api/auth', () => {
                 .send({
                     username: '',
                     password: '',
+                    passwordConfirm: '',
                     email: 'potatoes@potatoes',
                     captchaToken: 'test',
                 });
@@ -102,6 +107,60 @@ describe('api/auth', () => {
                 .includes('Please Enter a Valid Email Address')
                 .and.includes('Username Must Be Between 5 and 20 Characters')
                 .and.includes('Password Must Be At Least 8 Characters Long');
+        });
+
+        it('Should promt for matching passwords (mismatch)', async () => {
+            const res = await request(app)
+                .post('/api/auth/signup')
+                .send({
+                    username: 'testing',
+                    password: 'test12345',
+                    passwordConfirm: 'test123456',
+                    email: 'test@test.com',
+                    captchaToken: 'test',
+                });
+
+            expect(res.status).to.equal(422);
+            expect(res.body).to.have.property('error');
+            expect(res.body.error).to.have.property('message');
+            expect(res.body.error.message).to.be.an('array').of.length(1).that
+                .includes('Passwords do not match');
+        });
+
+        it('Should promt for matching passwords (skipped confirmation)', async () => {
+            const res = await request(app)
+                .post('/api/auth/signup')
+                .send({
+                    username: 'testing',
+                    password: 'test12345',
+                    passwordConfirm: '',
+                    email: 'test@test.com',
+                    captchaToken: 'test',
+                });
+
+            expect(res.status).to.equal(422);
+            expect(res.body).to.have.property('error');
+            expect(res.body.error).to.have.property('message');
+            expect(res.body.error.message).to.be.an('array').of.length(1).that
+                .includes('Passwords do not match');
+        });
+
+        it('Should promt for longer password (skipped both password fields)', async () => {
+            const res = await request(app)
+                .post('/api/auth/signup')
+                .send({
+                    username: 'testing',
+                    password: '',
+                    passwordConfirm: '',
+                    email: 'test@test.com',
+                    captchaToken: 'test',
+                });
+
+            expect(res.status).to.equal(422);
+            expect(res.body).to.have.property('error');
+            expect(res.body.error).to.have.property('message');
+            expect(res.body.error.message).to.be.an('array').of.length(1).that
+                .includes('Password Must Be At Least 8 Characters Long');
         });
     });
 
@@ -115,6 +174,7 @@ describe('api/auth', () => {
                 .send({
                     username: 'alreadytaken',
                     password: 'morepotatoes',
+                    passwordConfirm: 'morepotatoes',
                     email: 'potatoes@potatoes.com',
                     captchaToken: 'test',
                 });
@@ -130,6 +190,7 @@ describe('api/auth', () => {
                 .send({
                     username: 'alreadytaken',
                     password: 'morepotatoes',
+                    passwordConfirm: 'morepotatoes',
                     email: 'potatoes1@potatoes.com',
                     captchaToken: 'test',
                 });
@@ -153,6 +214,7 @@ describe('api/auth', () => {
                 .send({
                     username: 'signintest',
                     password: '123potatoes',
+                    passwordConfirm: '123potatoes',
                     email: 'potatoes94@potatoes.com',
                     captchaToken: 'test',
                 });
@@ -225,6 +287,7 @@ describe('api/users', () => {
                 .send({
                     username: 'testing',
                     password: 'potatoes',
+                    passwordConfirm: 'potatoes',
                     email: 'potatoes@potatoes.com',
                     captchaToken: 'test',
                 });
@@ -238,6 +301,7 @@ describe('api/users', () => {
                 .send({
                     username: 'taken',
                     password: 'potatoes',
+                    passwordConfirm: 'potatoes',
                     email: 'taken@potatoes.com',
                     captchaToken: 'test',
                 });
