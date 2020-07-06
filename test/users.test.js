@@ -162,6 +162,24 @@ describe('api/auth', () => {
             expect(res.body.error.message).to.be.an('array').of.length(1).that
                 .includes('Password Must Be At Least 8 Characters Long');
         });
+
+        it('Should prompt to check the recaptcha checkbox (signup)', async () => {
+            const res = await request(app)
+                .post('/api/auth/signup')
+                .send({
+                    username: 'potatoes',
+                    password: 'morepotatoes',
+                    passwordConfirm: 'morepotatoes',
+                    email: 'potatoes@potatoes.com',
+                    captchaToken: '',
+                });
+
+            expect(res.status).to.equal(401);
+            expect(res.body).to.have.property('error');
+            expect(res.body.error).to.have.property('message');
+            expect(res.body.error.message).to.be.an('array').of.length(1).that
+                .includes('Please successfully check the checkbox');
+        });
     });
 
     describe('user already exists', () => {
@@ -269,6 +287,21 @@ describe('api/auth', () => {
             expect(res.body.error).to.have.property('message');
             expect(res.body.error.message).to.be.an('array').of.length(1).that
                 .includes('Invalid Email/Password');
+        });
+
+        it('Should prompt to check the recaptcha checkbox (signin)', async () => {
+            const res = await request(app)
+                .post('/api/auth/signin')
+                .send({
+                    email: 'potatoes@potatoes.com',
+                    captchaToken: '',
+                });
+
+            expect(res.status).to.equal(401);
+            expect(res.body).to.have.property('error');
+            expect(res.body.error).to.have.property('message');
+            expect(res.body.error.message).to.be.an('array').of.length(1).that
+                .includes('Please successfully check the checkbox');
         });
     });
 });
