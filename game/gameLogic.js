@@ -6,18 +6,23 @@ const users = require('./users');
 
 const dictionary = new Set();
 
-// Words come from https://github.com/ciamkr/English-words-list/blob/master/OfficialCrosswords
-fs.readFile('./OfficialCrosswords.txt', (err, data) => {
+function addToDictionary(err, data) {
     console.log('generating words list...');
     // eslint-disable-next-line no-throw-literal
     if (err) throw err;
 
     const splitted = data.toString().split('\n');
 
+    // remove the last line, which is empty but exists due text files being terminated with \n
+    splitted.pop();
     splitted.forEach((word) => dictionary.add(word));
 
-    console.log('Finished generating words list!');
-});
+    console.log('Total dictionary size:', dictionary.size);
+}
+
+// Words come from https://github.com/ciamkr/English-words-list/blob/master/OfficialCrosswords
+fs.readFile('./OfficialCrosswords.txt', addToDictionary);
+fs.readFile('./OfficialCrosswordsDelta.txt', addToDictionary);
 
 /**
  * Add the user to our users object and find a match. If there is nobody to
