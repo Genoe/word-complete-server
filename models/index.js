@@ -14,3 +14,4 @@ mongoose.connect(process.env.DB_URL, {
 // requiring in each individual file.
 module.exports.User = require('./user');
 module.exports.PwdResetToken = require('./pwdResetToken');
+module.exports.Game = require('./game');
