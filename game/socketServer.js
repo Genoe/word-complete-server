@@ -3,6 +3,23 @@ const { loginRequired } = require('../middleware/io_auth');
 const gameLogic = require('./gameLogic');
 
 /**
+ * Send the "game over" event to both players
+ * and store the game in the database
+ * @param {SocketIO.Socket} socket The socket connection
+ * @param {String} playerMsg The messsage to be sent to the player who lost
+ * @param {String} oppMsg The message to be sent to the opponent
+ * @param {SocketIO.Socket.id} oppSockId The SocketIO ID of the opponent
+ */
+function endGame(socket, playerMsg, oppMsg, oppSockId) {
+    socket.emit('game over', {
+        msg: playerMsg,
+    });
+    socket.broadcast.to(oppSockId).emit('game over', {
+        msg: oppMsg,
+    });
+}
+
+/**
  * Set up all events for the Socket IO server
  * @param {SocketIO.Server} io
  */
@@ -26,10 +43,10 @@ function ioServer(io) {
             return next();
         });
 
-        socket.on('username', (username) => {
+        socket.on('userdata', ({ username, id: mongoId }) => {
             console.log(`User: ${username} has connected`);
 
-            const matchData = gameLogic.setUpMatch(socket.id, username);
+            const matchData = gameLogic.setUpMatch(socket.id, username, mongoId);
 
             if (matchData.foundMatch) {
                 socket.emit('pending', matchData.userMsg);
@@ -63,12 +80,7 @@ function ioServer(io) {
             const result = gameLogic.validateMessage(rawMsg, socket.id);
 
             if (result.gameOver) {
-                socket.emit('game over', {
-                    msg: result.resp,
-                });
-                socket.broadcast.to(result.oppId).emit('game over', {
-                    msg: result.oppResp,
-                });
+                endGame(socket, result.resp, result.oppResp, result.oppId);
             } else if (result.isBadWord) {
                 socket.emit('bad word', {
                     msg: result.resp,
@@ -88,12 +100,7 @@ function ioServer(io) {
             const result = gameLogic.swapTurnsTimer(socket.id);
 
             if (result.gameOver) {
-                socket.emit('game over', {
-                    msg: result.resp,
-                });
-                socket.broadcast.to(result.oppId).emit('game over', {
-                    msg: result.oppResp,
-                });
+                endGame(socket, result.resp, result.oppResp, result.oppId);
             } else {
                 socket.emit('bad word', {
                     msg: result.resp,

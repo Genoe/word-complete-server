@@ -29,9 +29,10 @@ fs.readFile('./OfficialCrosswordsDelta.txt', addToDictionary);
  * match up with, return a message that can be sent to the user.
  * @param {SocketIO.Socket.id} sockId SocketIO id of the user
  * @param {String} username The users chosen username
+ * @param {String} mongoId The users Id in the Mongo database
  */
-module.exports.setUpMatch = function setUpMatch(sockId, username) {
-    users.addUser(sockId, username);
+module.exports.setUpMatch = function setUpMatch(sockId, username, mongoId) {
+    users.addUser(sockId, username, mongoId);
 
     const matchedUserId = users.matchUsers(sockId);
 

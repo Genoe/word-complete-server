@@ -2,7 +2,8 @@ const MAX_LIVES = 3;
 const users = {};
 
 class User {
-    constructor(username) {
+    constructor(username, mongoId) {
+        this.mongoId = mongoId;
         this.username = username;
         this.pending = true; // is this user waiting to be matched up? TODO: Just rely on opponentId being false/falsy?
         this.oppenentId = null; // When users disconnect, delete that user and set their opponent's pending to true and opponentId to null
@@ -29,9 +30,10 @@ function findOpponent(sockId) {
  * lookup when socketIO events are sent or received
  * @param {SocketIO.Socket.id} socketId socketIO socket id
  * @param {String} username username created by the user
+ * @param {String} mongoId The users Id in the Mongo database
  */
-module.exports.addUser = function addUser(socketId, username) {
-    users[socketId] = new User(username);
+module.exports.addUser = function addUser(socketId, username, mongoId) {
+    users[socketId] = new User(username, mongoId);
 };
 
 /**
