@@ -17,6 +17,8 @@ function endGame(socket, playerMsg, oppMsg, oppSockId) {
     socket.broadcast.to(oppSockId).emit('game over', {
         msg: oppMsg,
     });
+
+    gameLogic.saveWords(socket.id);
 }
 
 /**

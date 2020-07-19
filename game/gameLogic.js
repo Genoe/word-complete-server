@@ -3,6 +3,7 @@
  */
 const fs = require('fs');
 const users = require('./users');
+const db = require('../models');
 
 const dictionary = new Set();
 
@@ -310,4 +311,26 @@ module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
  */
 module.exports.removeUser = function removeUser(sockId) {
     return users.removeUser(sockId);
+};
+
+/**
+ * When a game is finished, save the words used in the game to the database
+ */
+module.exports.saveWords = async function saveWords(sockId) {
+    const { words, oppenentId, mongoId } = users.getUser(sockId);
+    const { words: oppWords, mongoId: oppMongoId } = users.getUser(oppenentId);
+    console.log('WORDS', words);
+    console.log('OPPWORDS', oppWords);
+
+    /**
+     * "Opponent" is always the winner. If the game ended then it was
+     * because the person submitted an invalid word or ran out of time.
+     * "Opponent" was just waiting for their turn.
+     */
+    await db.Game.create({
+        _winnerId: oppMongoId,
+        _loserId: mongoId,
+        winnerWords: Array.from(oppWords),
+        loserWords: Array.from(words),
+    });
 };
