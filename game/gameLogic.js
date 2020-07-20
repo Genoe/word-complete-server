@@ -319,18 +319,20 @@ module.exports.removeUser = function removeUser(sockId) {
 module.exports.saveWords = async function saveWords(sockId) {
     const { words, oppenentId, mongoId } = users.getUser(sockId);
     const { words: oppWords, mongoId: oppMongoId } = users.getUser(oppenentId);
-    console.log('WORDS', words);
-    console.log('OPPWORDS', oppWords);
 
-    /**
-     * "Opponent" is always the winner. If the game ended then it was
-     * because the person submitted an invalid word or ran out of time.
-     * "Opponent" was just waiting for their turn.
-     */
-    await db.Game.create({
-        _winnerId: oppMongoId,
-        _loserId: mongoId,
-        winnerWords: Array.from(oppWords),
-        loserWords: Array.from(words),
-    });
+    try {
+        /**
+         * "Opponent" is always the winner. If the game ended then it was
+         * because the person submitted an invalid word or ran out of time.
+         * "Opponent" was just waiting for their turn.
+         */
+        await db.Game.create({
+            _winnerId: oppMongoId,
+            _loserId: mongoId,
+            winnerWords: Array.from(oppWords),
+            loserWords: Array.from(words),
+        });
+    } catch (e) {
+        console('ERROR SAVING GAME', e);
+    }
 };
