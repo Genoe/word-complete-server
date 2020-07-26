@@ -6,7 +6,7 @@ class User {
         this.mongoId = mongoId;
         this.username = username;
         this.pending = true; // is this user waiting to be matched up? TODO: Just rely on opponentId being false/falsy?
-        this.oppenentId = null; // When users disconnect, delete that user and set their opponent's pending to true and opponentId to null
+        this.opponentId = null; // When users disconnect, delete that user and set their opponent's pending to true and opponentId to null
         this.isTurn = null;
         this.lastWord = null;
         this.words = new Set();
@@ -51,9 +51,9 @@ module.exports.matchUsers = function matchUsers(sockId) {
         users[sockId].isTurn = Math.random() >= 0.5;
         users[oppSockId].isTurn = !users[sockId].isTurn;
 
-        users[sockId].oppenentId = oppSockId;
+        users[sockId].opponentId = oppSockId;
         users[sockId].pending = false;
-        users[oppSockId].oppenentId = sockId;
+        users[oppSockId].opponentId = sockId;
         users[oppSockId].pending = false;
 
         if (users[sockId].isTurn) {
@@ -84,11 +84,11 @@ module.exports.getUser = function getUser(sockId) {
 module.exports.removeUser = function removeUser(socketId) {
     let oppId = false;
 
-    if (users[socketId] && users[socketId].oppenentId) {
-        users[users[socketId].oppenentId].pending = true;
-        users[users[socketId].oppenentId].oppenentId = null;
+    if (users[socketId] && users[socketId].opponentId) {
+        users[users[socketId].opponentId].pending = true;
+        users[users[socketId].opponentId].opponentId = null;
 
-        oppId = users[socketId].oppenentId;
+        oppId = users[socketId].opponentId;
     }
 
     delete users[socketId];

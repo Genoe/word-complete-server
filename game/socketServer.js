@@ -118,11 +118,19 @@ function ioServer(io) {
         });
 
         socket.on('disconnect', () => {
-            const oppId = gameLogic.removeUser(socket.id);
+            const oppId = gameLogic.getOppId(socket.id);
 
             if (oppId) {
+                const midGame = gameLogic.checkMidGame(socket.id);
+
+                if (midGame) {
+                    gameLogic.saveWords(socket.id);
+                }
+
                 socket.broadcast.to(oppId).emit('opponent disconnected');
             }
+
+            gameLogic.removeUser(socket.id);
         });
     });
 }

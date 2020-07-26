@@ -185,7 +185,7 @@ function setChatDeadline(sockId, oppSockId) {
  */
 module.exports.swapTurnsTimer = function swapTurnsTimer(sockId) {
     const {
-        oppenentId: oppId,
+        opponentId: oppId,
         isTurn,
         username,
     } = users.getUser(sockId);
@@ -242,7 +242,7 @@ module.exports.swapTurnsTimer = function swapTurnsTimer(sockId) {
  */
 module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
     const {
-        oppenentId: oppId,
+        opponentId: oppId,
         isTurn,
         username,
         words,
@@ -317,8 +317,8 @@ module.exports.removeUser = function removeUser(sockId) {
  * When a game is finished, save the words used in the game to the database
  */
 module.exports.saveWords = async function saveWords(sockId) {
-    const { words, oppenentId, mongoId } = users.getUser(sockId);
-    const { words: oppWords, mongoId: oppMongoId } = users.getUser(oppenentId);
+    const { words, opponentId, mongoId } = users.getUser(sockId);
+    const { words: oppWords, mongoId: oppMongoId } = users.getUser(opponentId);
 
     try {
         /**
@@ -335,4 +335,29 @@ module.exports.saveWords = async function saveWords(sockId) {
     } catch (e) {
         console('ERROR SAVING GAME', e);
     }
+};
+
+/**
+ * Check if someone disconnected in the middle of a game.
+ * Used when a user disconnects. One player should have 0 lives. If not,
+ * then someone disconnected abruptly and the other player should win
+ * @param {SocketIO.Socket.id} sockId
+ */
+module.exports.checkMidGame = function checkMidGame(sockId) {
+    const { lives, opponentId, pending } = users.getUser(sockId);
+
+    if (pending) {
+        return false;
+    }
+    const oppLives = users.getUser(opponentId).lives;
+
+    return lives > 0 && oppLives > 0;
+};
+
+/**
+ * Return SocketIO id of the opponent.
+ * @param {SocketIO.Socket.id} sockId
+ */
+module.exports.getOppId = function getOppId(sockId) {
+    return users.getUser(sockId).opponentId;
 };
