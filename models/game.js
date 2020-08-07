@@ -15,4 +15,4 @@ const gameSchema = new mongoose.Schema({
     loserWords: [String],
 });
 
-module.exports = mongoose.model('gameSchema', gameSchema);
+module.exports = mongoose.model('game', gameSchema);
