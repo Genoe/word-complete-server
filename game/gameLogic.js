@@ -310,7 +310,7 @@ module.exports.validateMessage = function validateMessage(rawMsg, sockId) {
  * @returns {SocketIO.Socket.id}  return the opponent id, false if no opponent
  */
 module.exports.removeUser = function removeUser(sockId) {
-    return users.removeUser(sockId);
+    users.removeUser(sockId);
 };
 
 /**

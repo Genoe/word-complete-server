@@ -82,19 +82,14 @@ module.exports.getUser = function getUser(sockId) {
  * @returns {SocketIO.Socket.id} returns the socketIO id of the opponent. False if no opponent
  */
 module.exports.removeUser = function removeUser(socketId) {
-    let oppId = false;
-
     if (users[socketId] && users[socketId].opponentId) {
-        users[users[socketId].opponentId].pending = true;
-        users[users[socketId].opponentId].opponentId = null;
-
-        oppId = users[socketId].opponentId;
+        const oppId = users[socketId].opponentId;
+        users[oppId].pending = true;
+        users[oppId].opponentId = null;
     }
 
     delete users[socketId];
 
     console.log('user disconnected');
-    console.log(`Connected Users: ${JSON.stringify(users)}`);
-
-    return oppId;
+    console.log('CONNECTED USERS', users);
 };
